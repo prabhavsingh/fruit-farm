@@ -1,6 +1,7 @@
 const http = require("http");
 const fs = require("fs");
 const url = require("url");
+const slugify = require("slugify");
 
 const replaceTemplate = require("./modules/replaceTemplate");
 
@@ -22,6 +23,10 @@ const tempProduct = fs.readFileSync(
 
 const dataObj = JSON.parse(data);
 
+dataObj.forEach((el) => {
+  el.slug = slugify(el.productName, { lower: true });
+});
+
 const server = http.createServer((req, res) => {
   const { query, pathname } = url.parse(req.url, true);
 
@@ -42,7 +47,9 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, {
       "content-type": "text/html",
     });
-    const product = dataObj[query.id];
+
+    // const product = dataObj[query.id];
+    const product = dataObj.find((el) => el.slug === query.slug);
     const output = replaceTemplate(tempProduct, product);
     res.end(output);
 
